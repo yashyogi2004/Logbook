@@ -45,7 +45,9 @@ router.post('/login', async (req, res) => {
         }
         const token = generateAuthToken(user);
         // Set the token in a cookie
-        res.cookie('token', token);
+        res.cookie('token', token, {
+            httpOnly: true,
+            sameSite: 'Lax', maxAge: 3600000 });
         res.status(200).json({ message: 'Login successful' });
 
     } catch (error) {
@@ -66,6 +68,43 @@ router.get('/userProfile',isAuthenticated, async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+router.get('/users', isAuthenticated, async (req, res) => {
+    try {
+        const users = await UserModel.find().select('-password'); // Exclude password from the response
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.get('/users/:id', isAuthenticated, async (req, res) => {
+    const userId = req.params.id;
+    try {
+        const user = await UserModel.findById(userId).select('-password'); // Exclude password from the response
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+router.get('/logout', isAuthenticated, async(req, res) => {
+    const user = await UserModel.findById(req.user.id);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+    user.isActive = false; // Set user as inactive on logout
+    await user.save();
+    res.clearCookie('token'); // Clear the token cookie
+    res.status(200).json({ message: 'Logged out successfully' });
+});
+
 
 
 
