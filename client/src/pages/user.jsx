@@ -12,7 +12,7 @@ const Profile = ({ Logout }) => {
   const getData = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${import.meta.env.VITE_URL}/userProfile`, {
+      const res = await fetch(`${import.meta.env.VITE_URL}/users/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -23,6 +23,7 @@ const Profile = ({ Logout }) => {
       }
       
       const data = await res.json();
+      console.log(data);
       setUser(data);
       setError(null);
     } catch (err) {
@@ -151,9 +152,6 @@ const Profile = ({ Logout }) => {
                     </div>
                   </div>
                 </div>
-              <div className='flex items-center justify-center lg:justify-start space-x-3'>
-                    <button onClick={() => navigate('/addlog')} className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">Add Log</button>
-              </div>
               </div>
             </div>
 
@@ -167,8 +165,8 @@ const Profile = ({ Logout }) => {
               </div>
 
               {user.Logs && user.Logs.length > 0 ? (
-                <div className="overflow-x-auto ">
-                  <table className="w-full ">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
                     <thead className="bg-gray-800/50">
                       <tr>
                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
@@ -189,7 +187,7 @@ const Profile = ({ Logout }) => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
-                      {user.Logs.slice('').reverse().map((log, index) => (
+                      {user.Logs.map((log, index) => (
                         <tr 
                           key={log._id} 
                           className={`hover:bg-white/5 transition-colors ${

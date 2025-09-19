@@ -62,7 +62,7 @@ router.get('/userProfile',isAuthenticated, async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        res.status(200).json({ user });
+        res.status(200).json(user);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
@@ -71,18 +71,36 @@ router.get('/userProfile',isAuthenticated, async (req, res) => {
 
 router.get('/users', isAuthenticated, async (req, res) => {
     try {
-        const users = await UserModel.find().select('-password'); // Exclude password from the response
-        res.status(200).json(users);
+        const users = await UserModel.find().select('-password');
+         // Exclude password from the response
+         const userList = [];
+        for(let user of users){
+            if(user._id.toString() !== req.user.id){
+                userList.push(user);
+            }
+        }
+        res.status(200).json(userList);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
 
+router.get('/currentuser', isAuthenticated, async (req, res) => {
+    try {
+        const currentUsername = req.user.username;
+        res.status(200).json({ username: currentUsername });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 router.get('/users/:id', isAuthenticated, async (req, res) => {
     const userId = req.params.id;
+    const LoggedInUserId = req.user.username;
+        console.log(LoggedInUserId);
     try {
-        const user = await UserModel.findById(userId).select('-password'); // Exclude password from the response
+        const user = await UserModel.findById(userId).select('-password').populate('Logs'); // Exclude password from the response
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }

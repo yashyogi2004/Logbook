@@ -11,13 +11,13 @@ const LogSchema = new mongoose.Schema({
     task_description: {
         type: String,
     },
-    Month:{
+    attachment:{
         type: String,
-        default: new Date().toLocaleString('default', { month: 'long' }) // Default to current month
+        contentType: Buffer
     },
     status:{
         type: String,
-        enum: ['Pending', 'In Progress', 'Completed'],
+        enum: ['Pending', 'InComplete', 'Completed'],
         default: 'Pending',
     },
     createdAt: {
@@ -26,5 +26,7 @@ const LogSchema = new mongoose.Schema({
     }
 });
 
+//TTL index to auto-delete logs after 30 days
+LogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000 });
 const Log = mongoose.model('Log', LogSchema);
 module.exports = Log;
