@@ -11,7 +11,7 @@ import NotFound from './pages/Error';
 const App = () => {
  
   const handleClick=async(e)=>{
-    const res=await fetch("http://localhost:5000/api/v1/logout",{
+    const res=await fetch(`${import.meta.env.VITE_URL}/logout`,{
         method:"GET",
         headers:{"Content-Type":"application/json"},
         credentials:"include",
