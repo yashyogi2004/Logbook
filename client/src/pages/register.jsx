@@ -224,7 +224,7 @@ const Login = () => {
                   ) : (
                     <div className="flex items-center justify-center space-x-3">
                       <LogIn className="h-6 w-6" />
-                      <span className="text-lg">Sign In</span>
+                      <span className="text-lg">Sign Up</span>
                     </div>
                   )}
                 </div>
