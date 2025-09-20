@@ -13,13 +13,12 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const cors = require('cors');
-app.use(cors(
-    app.use(cors({
+app.use(cors({
   origin: 'https://logbook-topaz.vercel.app', // frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true // if sending cookies/auth headers
 }));
-));
+
 
 
 app.options('*', (req, res) => {
@@ -39,4 +38,5 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 
     });
+
 
