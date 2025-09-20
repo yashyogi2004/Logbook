@@ -22,6 +22,10 @@ app.use(cors({
 app.use('/', userRoutes);
 app.use('/', logRoutes);
 
+app.get('/', (req, res) => {
+    res.send('API is running...');
+});
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     });
