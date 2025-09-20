@@ -46,7 +46,6 @@ router.post('login', async (req, res) => {
         const token = generateAuthToken(user);
         // Set the token in a cookie
         res.cookie('token', token, {
-            httpOnly: true,
             sameSite: 'Lax', maxAge: 3600000 });
         res.status(200).json({ message: 'Login successful' });
 
