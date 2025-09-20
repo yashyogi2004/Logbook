@@ -14,11 +14,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const cors = require('cors');
 app.use(cors({
-    origin: ['https://logbook-topaz.vercel.app', 'http://localhost:5173'], // Adjust this to your frontend URL
+    origin: 'https://logbook-topaz.vercel.app', // Adjust this to your frontend URL
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    httpOnly: true,
-    sameSite: 'Lax'
 }));
 
 app.use('/', userRoutes);
