@@ -20,13 +20,6 @@ app.use(cors({
 }));
 
 
-
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', 'https://logbook-topaz.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.sendStatus(200);
-});
 app.use('/', userRoutes);
 app.use('/', logRoutes);
 
@@ -38,5 +31,6 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 
     });
+
 
 
