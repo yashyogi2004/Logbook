@@ -9,7 +9,7 @@ const isAuthenticated = require('../controller/AuthController');
 dotenv.config();
 
 
-router.post('/register', async (req, res) => {
+router.post('register', async (req, res) => {
     const { username, password, email } = req.body;
     try {
         const existingUser = await UserModel.findOne({
@@ -32,7 +32,7 @@ router.post('/register', async (req, res) => {
     }
 });
 
-router.post('/login', async (req, res) => {
+router.post('login', async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await UserModel.findOne({ email });
@@ -56,7 +56,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.get('/userProfile',isAuthenticated, async (req, res) => {
+router.get('userProfile',isAuthenticated, async (req, res) => {
     try {
         const user = await UserModel.findById(req.user.id).populate('Logs');
         if (!user) {
@@ -69,7 +69,7 @@ router.get('/userProfile',isAuthenticated, async (req, res) => {
     }
 });
 
-router.get('/users', isAuthenticated, async (req, res) => {
+router.get('users', isAuthenticated, async (req, res) => {
     try {
         const users = await UserModel.find().select('-password');
          // Exclude password from the response
@@ -86,7 +86,7 @@ router.get('/users', isAuthenticated, async (req, res) => {
     }
 });
 
-router.get('/currentuser', isAuthenticated, async (req, res) => {
+router.get('currentuser', isAuthenticated, async (req, res) => {
     try {
         const currentUsername = req.user.username;
         res.status(200).json({ username: currentUsername });
@@ -95,7 +95,7 @@ router.get('/currentuser', isAuthenticated, async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-router.get('/users/:id', isAuthenticated, async (req, res) => {
+router.get('users/:id', isAuthenticated, async (req, res) => {
     const userId = req.params.id;
     const LoggedInUserId = req.user.username;
     try {
@@ -111,7 +111,7 @@ router.get('/users/:id', isAuthenticated, async (req, res) => {
 });
 
 
-router.get('/logout', isAuthenticated, async(req, res) => {
+router.get('logout', isAuthenticated, async(req, res) => {
     const user = await UserModel.findById(req.user.id);
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -121,6 +121,7 @@ router.get('/logout', isAuthenticated, async(req, res) => {
     res.clearCookie('token'); // Clear the token cookie
     res.status(200).json({ message: 'Logged out successfully' });
 });
+
 
 
 
