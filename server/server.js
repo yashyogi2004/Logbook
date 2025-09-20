@@ -16,8 +16,14 @@ const cors = require('cors');
 app.use(cors({
   origin: 'https://logbook-eight-sigma.vercel.app', // frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true // if sending cookies/auth headers
+  credentials: true, // if sending cookies/auth headers
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+
+app.options('*', cors(
+{ origin: 'https://logbook-eight-sigma.vercel.app', credentials: true }
+)); // enable pre-flight request for all routes
 
 
 app.use('/', userRoutes);
