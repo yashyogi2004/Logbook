@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const cors = require('cors');
 app.use(cors({
-      origin: 'logbook-topaz.vercel.app', // frontend URL
+      origin: 'https://logbook-topaz.vercel.app', // frontend URL
     methods: ['GET','POST','PUT','DELETE','OPTIONS'],
     credentials: true,
 }));
