@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const cors = require('cors');
 app.use(cors({
-  origin: 'https://logbook-eight-sigma.vercel.app', // frontend URL
+  origin: 'https://logbook-mu.vercel.app', // frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true, // if sending cookies/auth headers
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -34,6 +34,7 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 
     });
+
 
 
 
