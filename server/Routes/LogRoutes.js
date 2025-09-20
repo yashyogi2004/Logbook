@@ -3,7 +3,7 @@ const UserModel = require('../db/models/Users');
 const LogModel = require('../db/models/Logs');
 const isAuthenticated = require('../controller/AuthController');
 
-router.get('/logs', isAuthenticated, async (req, res) => {
+router.get('logs', isAuthenticated, async (req, res) => {
     try {
         const logs = await LogModel.find({ user: req.user.id }).populate('user', 'username email');
         res.status(200).json(logs);
@@ -12,7 +12,7 @@ router.get('/logs', isAuthenticated, async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-router.post('/log/create', isAuthenticated, async (req, res) => {
+router.post('log/create', isAuthenticated, async (req, res) => {
     const { title, description, status,attachment } = req.body;
     try {
         const log = new LogModel({
@@ -34,7 +34,7 @@ router.post('/log/create', isAuthenticated, async (req, res) => {
 });
 
 // update log status with in 24 hours only other wise deny
-router.post('/log/update/:id', isAuthenticated, async (req, res) => {
+router.post('log/update/:id', isAuthenticated, async (req, res) => {
     const logId = req.params.id;
     const { status } = req.body;
     try {
@@ -62,7 +62,7 @@ router.post('/log/update/:id', isAuthenticated, async (req, res) => {
 
 
  
-router.get('/logs/:id',isAuthenticated, async (req, res) => {
+router.get('logs/:id',isAuthenticated, async (req, res) => {
     const userId = req.params.id;
     try {
         const logs = await LogModel.find({ user: userId }).populate('user', 'username email');
@@ -73,7 +73,7 @@ router.get('/logs/:id',isAuthenticated, async (req, res) => {
     }
 });
 
-router.get('/logs/search', isAuthenticated, async (req, res) => {
+router.get('logs/search', isAuthenticated, async (req, res) => {
     const query = req.query;
     try {
     
@@ -84,3 +84,4 @@ router.get('/logs/search', isAuthenticated, async (req, res) => {
 });
 
 module.exports = router;
+
