@@ -13,9 +13,21 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const cors = require('cors');
-app.use(cors());
+app.use(cors(
+    app.use(cors({
+  origin: 'https://logbook-topaz.vercel.app', // frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true // if sending cookies/auth headers
+}));
+));
 
 
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', 'https://logbook-topaz.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(200);
+});
 app.use('/', userRoutes);
 app.use('/', logRoutes);
 
@@ -27,3 +39,4 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 
     });
+
