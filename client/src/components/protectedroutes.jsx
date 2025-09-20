@@ -7,7 +7,7 @@ const protectedroutes = ({children}) => {
    const [isAuthenticated, setIsAuthenticated] = useState(false);
    const getData = async () => {
     try{
-       const res = await fetch("http://localhost:5000/api/v1/userProfile", {
+       const res = await fetch(`${import.meta.env.VITE_URL}/currentuser`, {
        method: "GET",
        headers: {
          "Content-Type": "application/json",
