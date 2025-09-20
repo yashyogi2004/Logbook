@@ -98,7 +98,6 @@ router.get('/currentuser', isAuthenticated, async (req, res) => {
 router.get('/users/:id', isAuthenticated, async (req, res) => {
     const userId = req.params.id;
     const LoggedInUserId = req.user.username;
-        console.log(LoggedInUserId);
     try {
         const user = await UserModel.findById(userId).select('-password').populate('Logs'); // Exclude password from the response
         if (!user) {

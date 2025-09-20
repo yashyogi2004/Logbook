@@ -74,6 +74,7 @@ const Dashboard = ({ Logout }) => {
             <div className="flex items-center space-x-3">
               <Users className="h-8 w-8 text-blue-600" />
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+                  <div className='flex items-center bg-gradient-to-br from-blue-500 via-blue-600 p-4 rounded-b-full text-2xl [h-100][w-100] text-amber-50' onClick={() => { navigate('/profile') }}>{profile ? profile.username.charAt(0).toUpperCase() : "Guest"}</div>
             </div>
             <button
               onClick={() => { Logout() }}
@@ -82,9 +83,8 @@ const Dashboard = ({ Logout }) => {
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
             </button>
-              <div className='flex items-center bg-gradient-to-br from-blue-500 via-blue-600 p-4 rounded-b-full text-2xl [h-100][w-100] text-amber-50' onClick={() => { navigate('/profile') }}>{profile ? profile.username.charAt(0).toUpperCase() : "Guest"}</div>
+          
           </div>
-         
         </div>
       </header>
 
