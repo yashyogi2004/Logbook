@@ -52,7 +52,13 @@ router.post('/login', async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000, // 1 day
             path: '/'
         });
-        res.status(200).json({ message: 'Login successful' });
+        res.status(200).json({ message: 'Login successful',
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email
+            }
+         });
 
     } catch (error) {
         console.error(error);
