@@ -1,35 +1,28 @@
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 
-const protectedroutes = ({children}) => {
-
-   const [isAuthenticated, setIsAuthenticated] = useState(false);
-   const getData = async () => {
-    try{
-       const res = await fetch(`${import.meta.env.VITE_URL}/currentuser`, {
-       method: "GET",
-       headers: {
-         "Content-Type": "application/json",
-       },
-       credentials: "include",
-     });
-     if(res.ok){
-      setIsAuthenticated(true);
-     }else{
-      setIsAuthenticated(false);
-     }
-    }catch(err){
-      console.log(err,"invalid credentials");
-    }
-   }
-   getData();
-    if(!isAuthenticated){
-        return <><div className='flex justify-center items-center h-screen'>
-        <h1 className='text-2xl font-bold'>Access Denied</h1></div> </>
+const protectedroutes = ({children,admin}) => {
+  const [accessDenied,setAccessDenied]=useState(false);
+useEffect(()=>{
+    if(!admin || !admin.id){
+        setAccessDenied(true);
     }else{
-        return  <>{children}</>
+        setAccessDenied(false);
     }
+  },[admin]); 
+  if(accessDenied){
+    return <><div className='flex justify-center items-center h-screen'>
+    <h1 className='text-2xl font-bold'>Access Denied</h1></div> </>
+  }else{
+    return  <>{children}</>
+  }
+  // if(){
+    //     return <><div className='flex justify-center items-center h-screen'>
+    //     <h1 className='text-2xl font-bold'>Access Denied</h1></div> </>
+    // }else{
+    //     return  <>{children}</>
+    // }
   
 }
 export default protectedroutes;

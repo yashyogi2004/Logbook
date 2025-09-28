@@ -9,7 +9,7 @@ import CreateLog from './pages/createLog';
 import Profile from './pages/profile';
 import NotFound from './pages/Error';
 const App = () => {
- 
+
   const handleClick=async(e)=>{
     const res=await fetch(`${import.meta.env.VITE_URL}/logout`,{
         method:"GET",
@@ -17,20 +17,51 @@ const App = () => {
         credentials:"include",
     }) ;
     if(res.ok){
+      localStorage.removeItem("admin");
+      setAdmin({
+        id: "",
+        username: "",
+        email: ""
+      });
         window.location.href="/";
     }
   }
+
+  const [admin,setAdmin]=useState({
+    id:"",
+    username:"",
+    email:""
+  });
+  console.log(admin);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("admin");
+    if (storedUser) {
+      setAdmin({
+        id: JSON.parse(storedUser).id,
+        username: JSON.parse(storedUser).username,
+        email: JSON.parse(storedUser).email
+      });
+    } else {
+      setAdmin({
+        id: "",
+        username: "",
+        email: ""
+      });
+    }
+  }, []);
+
    
   return (
     <div>
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={<Login/>}></Route>
+        <Route path='/' element={<Login admin={admin} setAdmin={setAdmin} />}></Route>
         <Route path='/register' element={<Register/>}></Route>
-        <Route path='/dashboard' element={<Protectedroutes><Dashboard Logout={handleClick}/></Protectedroutes>}></Route>
-        <Route path='/user/:id' element={<Protectedroutes><User Logout={handleClick} /></Protectedroutes>}></Route>
-        <Route path='/addlog' element={<Protectedroutes><CreateLog Logout={handleClick}/></Protectedroutes>}></Route>
-        <Route path='/profile' element={<Protectedroutes><Profile Logout={handleClick} /></Protectedroutes>}></Route>
+        <Route path='/dashboard' element={<Protectedroutes admin={admin} ><Dashboard Logout={handleClick}/></Protectedroutes>}></Route>
+        <Route path='/user/:id' element={<Protectedroutes admin={admin} ><User Logout={handleClick} /></Protectedroutes>}></Route>
+        <Route path='/addlog' element={<Protectedroutes admin={admin} ><CreateLog Logout={handleClick}/></Protectedroutes>}></Route>
+        <Route path='/profile' element={<Protectedroutes admin={admin} ><Profile Logout={handleClick} /></Protectedroutes>}></Route>
         <Route path='*' element={<NotFound />}></Route>
       </Routes>
       </BrowserRouter>

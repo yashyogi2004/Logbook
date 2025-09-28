@@ -2,23 +2,16 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle, Sparkles, Shield } from 'lucide-react';
 
-const Login = () => {
+const Login = ({ admin, setAdmin }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState({
-    email: "",
-    password: ""
-  });
+  const [user, setUser] = useState({ email: "", password: "" }); // --- IGNORE ---
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
 
   const handleChange = (e) => {
-    setUser({
-      ...user,
-      [e.target.name]: e.target.value,
-    });
-    if (error) setError("");
+    setUser({ ...user, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -41,7 +34,19 @@ const Login = () => {
       });
 
       if (res.ok) {
-        navigate("/dashboard");
+        const data = await res.json();
+        localStorage.setItem("admin", JSON.stringify({
+          id: data.user.id,
+          username: data.user.username,
+          email: data.user.email
+        }));
+        const storedUser = localStorage.getItem("admin");
+        setAdmin({
+          id:JSON.parse(storedUser).id,
+          username:JSON.parse(storedUser).username,
+          email:JSON.parse(storedUser).email
+        });
+         navigate("/dashboard");
       } else {
         const errorData = await res.json();
         setError(errorData.message || "Invalid credentials");
@@ -53,6 +58,8 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center p-4">
