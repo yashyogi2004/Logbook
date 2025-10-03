@@ -28,6 +28,14 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    otp: {
+        type: Number,
+        default: null,
+    },
+    otpExpiration: {
+        type: Date,
+        default: null,
+    },
 });
 
 userSchema.pre('save', async function(next) {

@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const generateAuthToken = require('../util/Authtoken');
 const isAuthenticated = require('../controller/AuthController');
+const sendEmail = require('../util/otpmessage');
 dotenv.config();
 
 
@@ -26,6 +27,50 @@ router.post('/register', async (req, res) => {
         });
         await user.save();
         res.status(201).json({ message: 'User registered successfully', user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+//forgot password 
+router.post('/forgotPassword', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await UserModel.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }else{
+            const otp = Math.floor(Math.random() * 10000);
+            user.otp = otp;
+            user.otpExpiration = new Date(Date.now() + 15 * 60 * 1000);
+            user.save(); // Generate a random 4-digit OTP
+            await sendEmail(email, otp);
+            res.status(200).json({ message: 'OTP sent successfully' });
+        }
+    
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.post('/resetPassword', async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    try {
+        const user = await UserModel.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (user.otp !== otp) {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+        if (user.otpExpiration < new Date()) {
+            return res.status(400).json({ message: 'OTP has expired' });
+        }
+        user.password = newPassword;
+        await user.save();
+        res.status(200).json({ message: 'Password reset successful' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
