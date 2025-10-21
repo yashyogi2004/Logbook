@@ -62,11 +62,25 @@ router.post('/log/update/:id', isAuthenticated, async (req, res) => {
 
 
  
-router.get('/logs/:id',isAuthenticated, async (req, res) => {
-    const userId = req.params.id;
+// router.get('/logs/:id',isAuthenticated, async (req, res) => {
+//     const userId = req.params.id;
+//     try {
+//         const logs = await LogModel.find({ user: userId }).populate('user', 'username email');
+//         res.status(200).json(logs);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// });
+//fing log by id
+router.get('/log/:id', isAuthenticated, async (req, res) => {
+    const logId = req.params.id;
     try {
-        const logs = await LogModel.find({ user: userId }).populate('user', 'username email');
-        res.status(200).json(logs);
+        const log = await LogModel.findById(logId).populate('user', 'username email');
+        if (!log) {
+            return res.status(404).json({ message: 'Log not found' });
+        }
+        res.status(200).json(log);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
