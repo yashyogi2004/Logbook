@@ -116,7 +116,8 @@ const Login = ({ admin, setAdmin }) => {
             )}
 
             {/* Form Fields */}
-            <div className="space-y-8">
+           <form onSubmit={handleSubmit}>
+             <div className="space-y-8">
               {/* Email Field */}
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-gray-300 uppercase tracking-wider">
@@ -188,7 +189,7 @@ const Login = ({ admin, setAdmin }) => {
             {/* Submit Button */}
             <div className="mt-10">
               <button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={loading}
                 className="relative w-full group overflow-hidden"
               >
@@ -209,6 +210,7 @@ const Login = ({ admin, setAdmin }) => {
               </button>
             </div>
 
+           </form>
             {/* Divider */}
             <div className="relative my-10">
               <div className="absolute inset-0 flex items-center">
@@ -253,8 +255,7 @@ const Login = ({ admin, setAdmin }) => {
           </div>
         </div>
       </div>
-
-      {/* Custom Animations
+      {/* Custom Animations */}
       <style jsx>{`
         @keyframes tilt {
           0%, 50%, 100% {
@@ -276,7 +277,7 @@ const Login = ({ admin, setAdmin }) => {
         .animation-delay-2000 {
           animation-delay: 2s;
         }
-      `}</style> */}
+      `}</style>
     </div>
   );
 };

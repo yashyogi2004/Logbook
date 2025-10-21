@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, LogOut, Mail, User, Calendar, CheckCircle, Clock, XCircle, FileText } from 'lucide-react';
+import { ArrowLeft, LogOut, Mail, User, Calendar, CheckCircle, Clock, XCircle, FileText,Pencil } from 'lucide-react';
 
 const Profile = ({ Logout }) => {
   const [user, setUser] = useState(null);
@@ -186,6 +186,9 @@ const Profile = ({ Logout }) => {
                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
                           Status
                         </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
+                         options
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
@@ -208,7 +211,7 @@ const Profile = ({ Logout }) => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-gray-300 max-w-md truncate">
-                              {log.attachment || 'No reference'}
+                              <a href={log.attachment} target="_blank" rel="noopener noreferrer">{log.attachment || 'No reference'}</a>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -223,6 +226,13 @@ const Profile = ({ Logout }) => {
                                 {log.status || 'Unknown'}
                               </span>
                             </div>
+                          </td>
+                          <td className="px-6 py-4">
+                              {/* Future action buttons can go here */}
+                              <button className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg" onClick={() => navigate("/editlog/"+log._id)}>
+                                <Pencil className="h-4 w-4" />
+                                <span>Edit</span>
+                              </button>
                           </td>
                         </tr>
                       ))}
