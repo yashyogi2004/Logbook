@@ -141,6 +141,58 @@ router.get('/users', isAuthenticated, async (req, res) => {
     }
 });
 
+router.post('/follow/:id', isAuthenticated, async (req, res) => {
+    const followUserId = req.params.id;
+    const loggedInUserId = req.user.id;
+    try {
+        if(followUserId === loggedInUserId){
+            return res.status(400).json({ message: 'You cannot follow yourself' });
+        }
+        const loggedInUser = await UserModel.findById(loggedInUserId);
+        const followUser = await UserModel.findById(followUserId);
+        if (!loggedInUser || !followUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (loggedInUser.following.includes(followUserId)) {
+            return res.status(400).json({ message: 'You are already following this user' });
+        }
+        loggedInUser.following.push(followUserId);
+        followUser.followers.push(loggedInUserId);
+        await followUser.save();
+        await loggedInUser.save();
+        res.status(200).json({ message: 'User followed successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.post('/unfollow/:id', isAuthenticated, async (req, res) => {
+    const unfollowUserId = req.params.id;
+    const loggedInUserId = req.user.id;
+    try {
+        if(unfollowUserId === loggedInUserId){
+            return res.status(400).json({ message: 'You cannot unfollow yourself' });
+        }
+        const loggedInUser = await UserModel.findById(loggedInUserId);
+        const unfollowUser = await UserModel.findById(unfollowUserId);
+        if (!loggedInUser || !unfollowUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (!loggedInUser.following.includes(unfollowUserId)) {
+            return res.status(400).json({ message: 'You are not following this user' });        
+        }
+        loggedInUser.following = loggedInUser.following.filter(id => id.toString() !== unfollowUserId);
+        unfollowUser.followers = unfollowUser.followers.filter(id => id.toString() !== loggedInUserId);
+        await unfollowUser.save();
+        await loggedInUser.save();
+        res.status(200).json({ message: 'User unfollowed successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 router.get('/currentuser', isAuthenticated, async (req, res) => {
     try {
         const currentUsername = req.user.username;
@@ -152,9 +204,14 @@ router.get('/currentuser', isAuthenticated, async (req, res) => {
 });
 router.get('/users/:id', isAuthenticated, async (req, res) => {
     const userId = req.params.id;
-    const LoggedInUserId = req.user.username;
+    const loggedInUserId = req.user.id;
     try {
-        const user = await UserModel.findById(userId).select('-password').populate('Logs'); // Exclude password from the response
+        const loggedInUser = await UserModel.findById(loggedInUserId).select('-password');
+        const isFollowing = loggedInUser.following.includes(userId);
+        if(!isFollowing){
+          return res.status(403).json({ message: 'You are not following this user' });
+        }
+        const user = await UserModel.findById(userId).select('-password');
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -164,6 +221,28 @@ router.get('/users/:id', isAuthenticated, async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+router.get('/followers', isAuthenticated, async (req, res) => {
+    try {
+        const user = await UserModel.findById(req.user.id).populate('followers', 'username email');
+        res.status(200).json(user.followers);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.get('/following', isAuthenticated, async (req, res) => {
+    try {
+        const user = await UserModel.findById(req.user.id).populate('following', 'username email');
+        res.status(200).json(user.following);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
 
 
 router.get('/logout', isAuthenticated, async(req, res) => {
@@ -176,6 +255,8 @@ router.get('/logout', isAuthenticated, async(req, res) => {
     res.clearCookie('token'); // Clear the token cookie
     res.status(200).json({ message: 'Logged out successfully' });
 });
+
+
 
 
 

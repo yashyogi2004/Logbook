@@ -72,7 +72,7 @@ router.post('/log/update/:id', isAuthenticated, async (req, res) => {
 //         res.status(500).json({ message: 'Internal server error' });
 //     }
 // });
-//fing log by id
+//find log by id
 router.get('/log/:id', isAuthenticated, async (req, res) => {
     const logId = req.params.id;
     try {
