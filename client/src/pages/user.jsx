@@ -210,7 +210,7 @@ const Profile = ({ Logout }) => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-gray-300 max-w-md truncate">
-                              {log.createdAt.split('T')[0] || 'No date'}
+                              {log.createdAt ? log.createdAt.split('T')[0] : 'No date'}
                             </div>
                           </td>
                           <td className="px-6 py-4">
