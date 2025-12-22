@@ -34,7 +34,7 @@ const App = () => {
     username:"",
     email:""
   });
-  console.log(admin);
+
 
   useEffect(() => {
     const storedUser = localStorage.getItem("admin");

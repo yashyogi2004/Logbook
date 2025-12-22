@@ -41,7 +41,7 @@ const ForgotPassword = () => {
     setError("");
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_URL}/forgot-password`, {
+      const res = await fetch(`${import.meta.env.VITE_URL}/forgotPassword`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
@@ -112,7 +112,7 @@ const ForgotPassword = () => {
     setError("");
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_URL}/verify-otp`, {
+      const res = await fetch(`${import.meta.env.VITE_URL}/verifyOTP`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp: otpCode })
@@ -139,7 +139,7 @@ const ForgotPassword = () => {
     setError("");
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_URL}/resend-otp`, {
+      const res = await fetch(`${import.meta.env.VITE_URL}/resendOTP`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
@@ -178,7 +178,7 @@ const ForgotPassword = () => {
     setError("");
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_URL}/reset-password`, {
+      const res = await fetch(`${import.meta.env.VITE_URL}/resetPassword`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

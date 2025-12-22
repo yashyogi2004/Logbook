@@ -41,10 +41,10 @@ router.post('/forgotPassword', async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }else{
-            const otp = Math.floor(Math.random() * 10000);
+            const otp = Math.floor(Math.random() * 1000000);
             user.otp = otp;
             user.otpExpiration = new Date(Date.now() + 15 * 60 * 1000);
-            user.save(); // Generate a random 4-digit OTP
+            user.save(); // Generate a random 6-digit OTP
             await sendEmail(email, otp);
             res.status(200).json({ message: 'OTP sent successfully' });
         }
@@ -55,18 +55,51 @@ router.post('/forgotPassword', async (req, res) => {
     }
 });
 
-router.post('/resetPassword', async (req, res) => {
-    const { email, otp, newPassword } = req.body;
+router.post('/verifyOTP', async (req, res) => {
+    const { email, otp } = req.body;
     try {
         const user = await UserModel.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        if (user.otp !== otp) {
+        if (user.otp != otp) {
             return res.status(400).json({ message: 'Invalid OTP' });
         }
         if (user.otpExpiration < new Date()) {
             return res.status(400).json({ message: 'OTP has expired' });
+        }
+        res.status(200).json({ message: 'OTP verification successful' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.post('/resendOTP', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await UserModel.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const otp = Math.floor(Math.random() * 1000000);
+        user.otp = otp;
+        user.otpExpiration = new Date(Date.now() + 15 * 60 * 1000);
+        await user.save();
+        await sendEmail(email, otp);
+        res.status(200).json({ message: 'OTP resent successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.post('/resetPassword', async (req, res) => {
+    const { email, newPassword } = req.body;
+    try {
+        const user = await UserModel.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
         user.password = newPassword;
         await user.save();
