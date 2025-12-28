@@ -1,310 +1,220 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router';
-import { LogOut, Users, User, UserPlus, UserCheck, UserMinus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Home, NotebookText, PlusSquare, User as UserIcon, LogOut, Menu, Zap, Search, Filter, Compass, Edit2, Trash2 } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import StatsChart from '../components/StatsChart';
+import Sidebar from '../components/Sidebar'; // Alag file se import
 
 const Dashboard = ({ Logout }) => {
-  const [users, setUsers] = useState([]);
-  const [following, setFollowing] = useState([]);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [loadingFollow, setLoadingFollow] = useState({});
-  const navigate = useNavigate();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const location = useLocation();
+    const navigate = useNavigate();
 
-  // Combine all initial data fetching into one effect
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
+    const [logs, setLogs] = useState([]);
+    const [user, setUser] = useState({ name: '', profilePic: '' });
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("All");
+    const [loading, setLoading] = useState(true);
+    const [profileLoading, setProfileLoading] = useState(true);
+
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
+    // --- FETCH LOGS ---
+    const fetchLogs = async () => {
         setLoading(true);
-        setError(null);
+        try {
+            const queryParams = new URLSearchParams({
+                search: searchTerm,
+                status: statusFilter
+            }).toString();
 
-        const [usersRes, followingRes, profileRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_URL}/users`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          }),
-          fetch(`${import.meta.env.VITE_URL}/following`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          }),
-          fetch(`${import.meta.env.VITE_URL}/currentuser`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          }),
-        ]);
+            const res = await fetch(`${import.meta.env.VITE_URL}/log?${queryParams}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            });
 
-        // Handle token expiration
-        if (usersRes.status === 401 || followingRes.status === 401 || profileRes.status === 401) {
-          setError('Session expired. Please login again.');
-          setTimeout(() => navigate('/login'), 2000);
-          return;
+            if (res.ok) {
+                const data = await res.json();
+                setLogs(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch logs:", err);
+        } finally {
+            setLoading(false);
         }
-
-        if (!usersRes.ok || !followingRes.ok || !profileRes.ok) {
-          throw new Error('Failed to fetch data');
-        }
-
-        const [usersData, followingData, profileData] = await Promise.all([
-          usersRes.json(),
-          followingRes.json(),
-          profileRes.json(),
-        ]);
-
-        setUsers(usersData || []);
-        setFollowing(followingData || []);
-        setProfile(profileData);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load dashboard. Please try again.');
-      } finally {
-        setLoading(false);
-      }
     };
 
-    fetchAllData();
-  }, [navigate]);
+    // --- FETCH PROFILE ---
+    const fetchProfile = async () => {
+        setProfileLoading(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_URL}/userProfile`, {
+                credentials: "include"
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setUser({
+                    name: data.username || "",
+                    profilePic: data.profilePic || ""
+                });
+            }
+        } catch (err) { 
+            console.log(err); 
+        } finally {
+            setProfileLoading(false);
+        }
+    };
 
-  const handleClick = useCallback((id) => {
-    navigate(`/user/${id}`);
-  }, [navigate]);
+    useEffect(() => {
+        fetchProfile();
+    }, []);
 
-  const isFollowing = useCallback((userId) => {
-    return following.some(f => f._id === userId);
-  }, [following]);
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            fetchLogs();
+        }, 500);
+        return () => clearTimeout(delayDebounce);
+    }, [searchTerm, statusFilter]);
 
-  const handleFollow = useCallback(async (userId) => {
-    setLoadingFollow(prev => ({ ...prev, [userId]: true }));
-    try {
-      const res = await fetch(`${import.meta.env.VITE_URL}/follow/${userId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
+    const handleEdit = (e, id) => {
+        e.stopPropagation();
+        navigate(`/editlog/${id}`);
+    };
 
-      if (res.status === 401) {
-        setError('Session expired. Please login again.');
-        setTimeout(() => navigate('/login'), 2000);
-        return;
-      }
+    const handleDelete = async (e, id) => {
+        e.stopPropagation();
+        if (window.confirm("Are you sure you want to delete this log?")) {
+            await fetch(`${import.meta.env.VITE_URL}/log/${id}`, {
+                method: "DELETE",
+                credentials: "include"
+            });
+            fetchLogs();
+        }
+    };
 
-      if (!res.ok) throw new Error('Failed to follow user');
+    return (
+        <div className="flex h-screen font-sans bg-[#f7f8fa] relative overflow-hidden">
+            
+            {/* 1. SIDEBAR (Alag file se handle ho raha hai) */}
+            <Sidebar 
+                isSidebarOpen={isSidebarOpen} 
+                setIsSidebarOpen={setIsSidebarOpen} 
+                user={user} 
+                Logout={Logout} 
+                profileLoading={profileLoading} 
+            />
 
-      const userData = users.find(u => u._id === userId);
-      setFollowing(prev => [...prev, userData || { _id: userId }]);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to follow user');
-    } finally {
-      setLoadingFollow(prev => ({ ...prev, [userId]: false }));
-    }
-  }, [users, navigate]);
+            {/* 2. MAIN CONTENT AREA */}
+            <main className="flex-1 overflow-y-auto relative z-10 custom-scrollbar">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto">
 
-  const handleUnfollow = useCallback(async (userId) => {
-    setLoadingFollow(prev => ({ ...prev, [userId]: true }));
-    try {
-      const res = await fetch(`${import.meta.env.VITE_URL}/unfollow/${userId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      if (res.status === 401) {
-        setError('Session expired. Please login again.');
-        setTimeout(() => navigate('/login'), 2000);
-        return;
-      }
-
-      if (!res.ok) throw new Error('Failed to unfollow user');
-
-      setFollowing(prev => prev.filter(f => f._id !== userId));
-    } catch (err) {
-      console.error(err);
-      setError('Failed to unfollow user');
-    } finally {
-      setLoadingFollow(prev => ({ ...prev, [userId]: false }));
-    }
-  }, [navigate]);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Header */}
-      <header className="bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <Users className="h-8 w-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <div className='flex items-center bg-gradient-to-br from-blue-500 via-blue-600 p-4 rounded-full text-2xl text-amber-50 cursor-pointer hover:scale-105 transition-transform' onClick={() => { navigate('/profile') }}>{profile ? profile.username.charAt(0).toUpperCase() : "G"}</div>
-            </div>
-            <button
-              onClick={() => { Logout() }}
-              className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
-          
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Section - Connected People (2/3 width) */}
-          <div className="lg:col-span-2">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-white mb-2 flex items-center space-x-2">
-                <Users className="h-6 w-6" />
-                <span>Connected People</span>
-              </h2>
-              <p className="text-gray-400">Click on any user to view their profile</p>
-            </div>
-
-            {/* Loading State */}
-            {loading && (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
-                <p>{error}</p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                >
-                  Reload Page
-                </button>
-              </div>
-            )}
-
-            {/* Connected People List */}
-            {!loading && !error && (
-              <>
-                {following.length === 0 ? (
-                  <div className="text-center py-12 bg-white/5 border border-gray-700 rounded-xl">
-                    <Users className="mx-auto h-12 w-12 text-gray-500 mb-4" />
-                    <p className="text-gray-400 text-lg">No connected people yet</p>
-                    <p className="text-gray-500 text-sm mt-2">Follow users from the "People to Follow" section to see them here</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {following.map((user) => (
-                      <div
-                        key={user._id}
-                        className="bg-white/10 backdrop-blur-sm border border-gray-700 rounded-xl p-5 transform transition-all duration-300 hover:bg-white/20 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/25 flex items-center justify-between"
-                      >
-                        <div className="flex items-center space-x-4 flex-1 cursor-pointer" onClick={() => { handleClick(user._id) }}>
-                          <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full p-3 flex-shrink-0">
-                            <User className="h-6 w-6 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-white truncate">
-                              {user.username}
-                            </h3>
-                            <p className="text-gray-400 text-sm">{user.email}</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleUnfollow(user._id);
-                          }}
-                          disabled={loadingFollow[user._id]}
-                          className="flex items-center space-x-1 bg-red-600/50 hover:bg-red-600 text-red-200 px-3 py-2 rounded-lg transition-colors duration-200 flex-shrink-0 ml-2 disabled:opacity-50"
-                        >
-                          {loadingFollow[user._id] ? (
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          ) : (
-                            <>
-                              <UserMinus className="h-4 w-4" />
-                              <span className="text-sm">Unfollow</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Right Section - People to Follow (1/3 width) */}
-          <div className="lg:col-span-1">
-            <div className="mb-6 sticky top-8">
-              <h2 className="text-2xl font-semibold text-white mb-2 flex items-center space-x-2">
-                <UserPlus className="h-6 w-6" />
-                <span>People to Follow</span>
-              </h2>
-              <p className="text-gray-400 text-sm">Discover new connections</p>
-            </div>
-
-            {/* People to Follow List */}
-            {!loading && (
-              <>
-                {users.length === 0 ? (
-                  <div className="text-center py-8 bg-white/5 border border-gray-700 rounded-xl">
-                    <Users className="mx-auto h-10 w-10 text-gray-500 mb-3" />
-                    <p className="text-gray-400 text-sm">No users to follow</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-                    {users.map((user) => (
-                      <div
-                        key={user._id}
-                        className="bg-white/10 backdrop-blur-sm border border-gray-700 rounded-lg p-4 transform transition-all duration-300 hover:bg-white/20 hover:border-blue-500"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center space-x-2 flex-1 min-w-0">
-                            <div className="bg-blue-500 rounded-full p-2 flex-shrink-0">
-                              <User className="h-4 w-4 text-white" />
+                    {/* Top Bar - Mobile Menu Button added */}
+                    <header className="flex justify-between items-center mb-8 bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-gray-100 sticky top-0 z-30">
+                        <div className="flex items-center gap-4">
+                            {/* Hamburger Button for Mobile */}
+                            <button className="md:hidden text-gray-600 p-2 rounded-lg hover:bg-gray-100" onClick={() => setIsSidebarOpen(true)}>
+                                <Menu className="w-6 h-6" />
+                            </button>
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-800 hidden md:block">Overview</h2>
+                                <p className="text-xs text-gray-500 font-medium md:hidden">{today}</p>
                             </div>
-                            <h3 className="text-sm font-semibold text-white truncate">
-                              {user.username}
-                            </h3>
-                          </div>
                         </div>
-                        <button
-                          onClick={() => handleFollow(user._id)}
-                          disabled={isFollowing(user._id) || loadingFollow[user._id]}
-                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-1 ${
-                            isFollowing(user._id)
-                              ? 'bg-green-600/50 text-green-200 cursor-default'
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
-                          } disabled:opacity-50`}
-                        >
-                          {loadingFollow[user._id] ? (
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          ) : isFollowing(user._id) ? (
-                            <>
-                              <UserCheck className="h-4 w-4" />
-                              <span>Following</span>
-                            </>
-                          ) : (
-                            <>
-                              <UserPlus className="h-4 w-4" />
-                              <span>Follow</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+                        <div className="flex items-center gap-4">
+                            <div className="hidden sm:block text-right">
+                                <p className="text-xs text-gray-400 font-semibold uppercase">Current Status</p>
+                                <p className="text-sm font-bold text-[#00B8D9]">Active Session</p>
+                            </div>
+                            {/* Mobile User Avatar logic remains same */}
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00B8D9] to-teal-400 flex items-center justify-center text-white font-bold uppercase overflow-hidden shadow-md">
+                                {user.profilePic ? <img src={user.profilePic} className="w-full h-full object-cover" /> : (user.name ? user.name[0] : "?")}
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Dashboard Content - Layout Unchanged */}
+                    <div className="space-y-8">
+                        <div className="bg-gradient-to-r from-[#00B8D9] to-teal-500 rounded-3xl p-8 md:p-10 text-white shadow-xl relative overflow-hidden group">
+                            <div className="absolute right-0 top-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                <div>
+                                    <h2 className="text-3xl font-extrabold mb-2">Track Your Progress</h2>
+                                    <p className="text-teal-100 text-lg max-w-lg">Consistency is key. Manage your logs efficiently with our search and filter tools.</p>
+                                </div>
+                                <Link to="/addlog" className="px-8 py-4 bg-white text-[#00B8D9] font-bold rounded-xl shadow-lg hover:bg-gray-50 transition-all flex items-center gap-2">
+                                    <PlusSquare className="w-5 h-5" />
+                                    <span>Create New Log</span>
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Grid Logic: Desktop side-by-side, Mobile stacked */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-1 bg-white rounded-3xl shadow-xl border border-gray-100 min-h-[350px]">
+                                <StatsChart logs={logs} />
+                            </div>
+
+                            <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl border border-gray-100 min-h-[500px] flex flex-col overflow-hidden">
+                                <div className="p-6 border-b border-gray-100">
+                                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+                                        <h3 className="text-xl font-bold text-[#212529] flex items-center gap-2">
+                                            <NotebookText className="w-5 h-5 text-[#00B8D9]" /> Recent Logs
+                                        </h3>
+                                        <span className="text-sm text-gray-400 font-medium">{logs.length} entries found</span>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row gap-4">
+                                        <div className="relative flex-grow">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                            <input type="text" placeholder="Search logs..." className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00B8D9]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                        </div>
+                                        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="pl-4 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none">
+                                            <option value="All">All Status</option>
+                                            <option value="Completed">Completed</option>
+                                            <option value="Pending">Pending</option>
+                                            <option value="inComplete">Failed</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="flex-grow overflow-x-auto">
+                                    {loading ? (
+                                        <div className="flex justify-center items-center h-40"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00B8D9]"></div></div>
+                                    ) : (
+                                        <table className="min-w-full">
+                                            <thead className="bg-gray-50">
+                                                <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                    <th className="py-3 px-6">Title</th>
+                                                    <th className="py-3 px-6 text-center hidden sm:table-cell">Date</th>
+                                                    <th className="py-3 px-6 text-right">Status</th>
+                                                    <th className="py-3 px-6 text-right">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-50">
+                                                {logs.map((log) => (
+                                                    <tr key={log._id} onClick={() => navigate(`/viewlog/${log._id}`)} className="hover:bg-blue-50/50 transition-colors group cursor-pointer">
+                                                        <td className="py-4 px-6 text-sm font-semibold text-gray-700">{log.title}</td>
+                                                        <td className="py-4 px-6 text-sm text-gray-500 text-center hidden sm:table-cell">{new Date(log.createdAt).toLocaleDateString()}</td>
+                                                        <td className="py-4 px-6 text-right">
+                                                            {/* Yahan aapka StatusBadge logic */}
+                                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100">{log.status}</span>
+                                                        </td>
+                                                        <td className="py-4 px-6 text-right whitespace-nowrap">
+                                                            <button className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg mr-2" onClick={e => handleEdit(e, log._id)}><Edit2 className="w-4 h-4" /></button>
+                                                            <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg" onClick={e => handleDelete(e, log._id)}><Trash2 className="w-4 h-4" /></button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
-      </main>
-    </div>
-  );
+    );
 };
 
 export default Dashboard;

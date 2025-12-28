@@ -1,12 +1,22 @@
-const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
-dotenv.config();
+import jwt from 'jsonwebtoken';
+import 'dotenv/config';
+import { generateResetToken, verifyResetToken } from "../util/resetToken.js";
 
 const generateAuthToken = (user) => {
-    const token = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_SECRET, { 
-            expiresIn: '1h', // Helps prevent CSRF attacks   
-    });
+    // We generate a token containing the user's ID, username, and email
+    const token = jwt.sign(
+        { 
+            id: user._id, 
+            username: user.username, 
+            email: user.email 
+        }, 
+        process.env.JWT_SECRET, 
+        { 
+            expiresIn: '1h', // Token expiration for security
+        }
+    );
     return token;
 }
 
-module.exports = generateAuthToken;
+// Use export default instead of module.exports
+export default generateAuthToken;
