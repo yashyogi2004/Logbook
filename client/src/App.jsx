@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Cookies from 'js-cookie';
@@ -15,9 +16,22 @@ import AboutUs from './pages/about-us';
 import Contact from './pages/contact';
 import Pricing from './pages/pricing';
 import Features from './pages/Features';
+=======
+import React from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import ProtectedRoutes from './components/ProtectedRoutes';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+
+import Home from './pages/home';
+import AboutUs from './pages/about-us';
+import Contact from './pages/contact';
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
 import Login from './pages/login';
 import Register from './pages/register';
 import NotFound from './pages/Error';
+<<<<<<< HEAD
 import ForgotPassword from './pages/forget-password';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ResetPassword from "./pages/ResetPassword";
@@ -38,10 +52,18 @@ import User from './pages/user';
 const CONSENT_COOKIE_KEY = 'cookie_consent_accepted';
 
 // --- Cookie Banner ---
+=======
+import ForgotPassword from './pages/forgot-password';
+
+const apiBaseUrl = 'http://localhost:5000';
+const CONSENT_COOKIE_KEY = 'cookie_consent_accepted';
+
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
 const CookieBanner = ({ isConsentGiven, handleAcceptCookies }) => {
   if (isConsentGiven) return null;
 
   return (
+<<<<<<< HEAD
     <div className="fixed bottom-0 w-full bg-[#212529] text-white p-4 text-center z-[1000] shadow-2xl border-t border-gray-700 animate-slide-up">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4">
         <p className="text-sm text-gray-300">
@@ -54,10 +76,40 @@ const CookieBanner = ({ isConsentGiven, handleAcceptCookies }) => {
           I Understand
         </button>
       </div>
+=======
+    <div style={{
+      position: 'fixed',
+      bottom: 0,
+      width: '100%',
+      backgroundColor: '#333',
+      color: 'white',
+      padding: '10px 20px',
+      textAlign: 'center',
+      zIndex: 1000
+    }}>
+      <p style={{ margin: 0 }}>
+        This website uses cookies to ensure you get the best experience.
+        <button
+          onClick={handleAcceptCookies}
+          style={{
+            marginLeft: '15px',
+            padding: '5px 10px',
+            backgroundColor: '#2ecc71',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          I Understand
+        </button>
+      </p>
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
     </div>
   );
 };
 
+<<<<<<< HEAD
 const AppRoutes = ({ handleLogout }) => {
   const location = useLocation();
 
@@ -88,6 +140,25 @@ const AppRoutes = ({ handleLogout }) => {
           <Route path="/users/:id" element={<User />} />
 
           {/* --- Protected Routes --- */}
+=======
+const AppRoutes = ({ handleLogout, isConsentGiven, handleAcceptCookies }) => {
+  const location = useLocation();
+  const hideNavbarRoutes = ['/dashboard'];
+
+  const shouldHideNavbar = hideNavbarRoutes.includes(location.pathname);
+
+  return (
+    <>
+      {!shouldHideNavbar && <Navbar Logout={handleLogout} />}
+      <main style={{ minHeight: '80vh' }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/contact" element={<Contact />} />
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
           <Route
             path="/dashboard"
             element={
@@ -97,6 +168,7 @@ const AppRoutes = ({ handleLogout }) => {
             }
           />
           <Route
+<<<<<<< HEAD
             path="/feed"
             element={
               <ProtectedRoutes>
@@ -117,6 +189,12 @@ const AppRoutes = ({ handleLogout }) => {
             element={
               <ProtectedRoutes>
                 <LogDetails />
+=======
+            path="/user/:id"
+            element={
+              <ProtectedRoutes>
+                <User Logout={handleLogout} />
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
               </ProtectedRoutes>
             }
           />
@@ -129,6 +207,7 @@ const AppRoutes = ({ handleLogout }) => {
             }
           />
           <Route
+<<<<<<< HEAD
             path="/editlog/:id"
             element={
               <ProtectedRoutes>
@@ -138,6 +217,8 @@ const AppRoutes = ({ handleLogout }) => {
           />
           {/* -- PRIVATE user profile (yourself) -- */}
           <Route
+=======
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
             path="/profile"
             element={
               <ProtectedRoutes>
@@ -145,6 +226,7 @@ const AppRoutes = ({ handleLogout }) => {
               </ProtectedRoutes>
             }
           />
+<<<<<<< HEAD
           {/* Settings (protected variant) */}
           <Route
             path="/Settings"
@@ -168,10 +250,19 @@ const AppRoutes = ({ handleLogout }) => {
       </main>
       {!shouldHideNavbar && <Footer />}
     </div>
+=======
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      <Footer />
+      <CookieBanner isConsentGiven={isConsentGiven} handleAcceptCookies={handleAcceptCookies} />
+    </>
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
   );
 };
 
 const App = () => {
+<<<<<<< HEAD
   // --- Cookie Consent Banner State ---
   const [isConsentGiven, setIsConsentGiven] = useState(Cookies.get(CONSENT_COOKIE_KEY) === 'true');
 
@@ -191,13 +282,43 @@ const App = () => {
       });
     } catch (err) { /* ignore errors for API logout */ }
     window.location.href = "/login";
+=======
+  const isConsentGiven = Cookies.get(CONSENT_COOKIE_KEY) === 'true';
+
+  const handleAcceptCookies = () => {
+    Cookies.set(CONSENT_COOKIE_KEY, 'true', { expires: 365, secure: true, sameSite: 'Strict' });
+  };
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch(`${apiBaseUrl}/logout`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        window.location.href = "/";
+      }
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
   };
 
   return (
     <BrowserRouter>
+<<<<<<< HEAD
       <AIChatWidget />
       <AppRoutes handleLogout={handleLogout} />
       <CookieBanner isConsentGiven={isConsentGiven} handleAcceptCookies={handleAcceptCookies} />
+=======
+      <AppRoutes
+        handleLogout={handleLogout}
+        isConsentGiven={isConsentGiven}
+        handleAcceptCookies={handleAcceptCookies}
+      />
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
     </BrowserRouter>
   );
 };

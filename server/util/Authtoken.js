@@ -3,18 +3,9 @@ import 'dotenv/config';
 import { generateResetToken, verifyResetToken } from "../util/resetToken.js";
 
 const generateAuthToken = (user) => {
-    // We generate a token containing the user's ID, username, and email
-    const token = jwt.sign(
-        { 
-            id: user._id, 
-            username: user.username, 
-            email: user.email 
-        }, 
-        process.env.JWT_SECRET, 
-        { 
-            expiresIn: '1h', // Token expiration for security
-        }
-    );
+    const token = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_SECRET, { 
+            expiresIn: '1h', // Helps prevent CSRF attacks   
+    });
     return token;
 }
 

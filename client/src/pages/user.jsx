@@ -93,6 +93,7 @@ const User = ({ Logout }) => {
         </div>
     );
 
+<<<<<<< HEAD
     if (error)
         return (
             <div className="h-screen flex items-center justify-center bg-[#f7f8fa]">
@@ -104,13 +105,75 @@ const User = ({ Logout }) => {
                         Explore Others
                     </button>
                 </div>
+=======
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {loading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
+            <p>{error}</p>
+            <button
+              onClick={getData}
+              className="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && user && (
+          <div className="space-y-8">
+            <div className="bg-white/10 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 shadow-xl">
+              <div className="flex flex-col lg:flex-row items-center lg:items-start space-y-6 lg:space-y-0 lg:space-x-8">
+                <div className="relative">
+                  <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg">
+                    {user.username?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white"></div>
+                </div>
+
+                <div className="flex-1 text-center lg:text-left">
+                  <h2 className="text-3xl font-bold text-white mb-4">{user.username}</h2>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center lg:justify-start space-x-3">
+                      <Mail className="h-5 w-5 text-blue-400" />
+                      <span className="text-gray-300">{user.email}</span>
+                    </div>
+                    <div className="flex items-center justify-center lg:justify-start space-x-3">
+                      <FileText className="h-5 w-5 text-green-400" />
+                      <span className="text-gray-300">
+                        {user.Logs?.length || 0} {user.Logs?.length === 1 ? 'Log' : 'Logs'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center lg:justify-start space-x-3">
+                      <Calendar className="h-5 w-5 text-red-400" />
+                      <span className="text-gray-300">Joined on {new Date(user.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
             </div>
         );
 
+<<<<<<< HEAD
     // ---- DEFINE counts here ----
     const isFollowing = containsId(myProfile?.following, user?._id);
     const followersCount = Array.isArray(user?.followers) ? user.followers.length : 0;
     const logsCount = Array.isArray(user?.logs) ? user.logs.length : 0;
+=======
+            <div className="bg-white/10 backdrop-blur-sm border border-gray-700 rounded-2xl shadow-xl overflow-hidden">
+              <div className="px-8 py-6 border-b border-gray-700">
+                <h3 className="text-2xl font-bold text-white flex items-center space-x-3">
+                  <FileText className="h-6 w-6 text-blue-400" />
+                  <span>Activity Logs</span>
+                </h3>
+              </div>
+>>>>>>> a528fd3f4801dc640c1d5ae12975bae9ead54d80
 
     return (
         <div className="flex h-screen bg-[#f7f8fa] overflow-hidden font-sans">
