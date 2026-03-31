@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const generateAuthToken = require('../util/Authtoken');
 const isAuthenticated = require('../controller/AuthController');
-const sendEmail = require('../util/otpmessage');
 dotenv.config();
 
 
@@ -33,83 +32,6 @@ router.post('/register', async (req, res) => {
     }
 });
 
-//forgot password 
-router.post('/forgotPassword', async (req, res) => {
-    const { email } = req.body;
-    try {
-        const user = await UserModel.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }else{
-            const otp = Math.floor(Math.random() * 1000000);
-            user.otp = otp;
-            user.otpExpiration = new Date(Date.now() + 15 * 60 * 1000);
-            user.save(); // Generate a random 6-digit OTP
-            await sendEmail(email, otp);
-            res.status(200).json({ message: 'OTP sent successfully' });
-        }
-    
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-router.post('/verifyOTP', async (req, res) => {
-    const { email, otp } = req.body;
-    try {
-        const user = await UserModel.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        if (user.otp != otp) {
-            return res.status(400).json({ message: 'Invalid OTP' });
-        }
-        if (user.otpExpiration < new Date()) {
-            return res.status(400).json({ message: 'OTP has expired' });
-        }
-        res.status(200).json({ message: 'OTP verification successful' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-router.post('/resendOTP', async (req, res) => {
-    const { email } = req.body;
-    try {
-        const user = await UserModel.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        const otp = Math.floor(Math.random() * 1000000);
-        user.otp = otp;
-        user.otpExpiration = new Date(Date.now() + 15 * 60 * 1000);
-        await user.save();
-        await sendEmail(email, otp);
-        res.status(200).json({ message: 'OTP resent successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-router.post('/resetPassword', async (req, res) => {
-    const { email, newPassword } = req.body;
-    try {
-        const user = await UserModel.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        user.password = newPassword;
-        await user.save();
-        res.status(200).json({ message: 'Password reset successful' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -130,18 +52,16 @@ router.post('/login', async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000, // 1 day
             path: '/'
         });
-        res.status(200).json({ message: 'Login successful',
-            user: {
-                id: user._id,
-                username: user.username,
-                email: user.email
-            }
-         });
+        res.status(200).json({ message: 'Login successful' });
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    res.status(200).json({
+      message: "Login successful",
+      user: { id: user._id, username: user.username, email: user.email },
+    });
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 router.get('/userProfile',isAuthenticated, async (req, res) => {
@@ -174,58 +94,6 @@ router.get('/users', isAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/follow/:id', isAuthenticated, async (req, res) => {
-    const followUserId = req.params.id;
-    const loggedInUserId = req.user.id;
-    try {
-        if(followUserId === loggedInUserId){
-            return res.status(400).json({ message: 'You cannot follow yourself' });
-        }
-        const loggedInUser = await UserModel.findById(loggedInUserId);
-        const followUser = await UserModel.findById(followUserId);
-        if (!loggedInUser || !followUser) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        if (loggedInUser.following.includes(followUserId)) {
-            return res.status(400).json({ message: 'You are already following this user' });
-        }
-        loggedInUser.following.push(followUserId);
-        followUser.followers.push(loggedInUserId);
-        await followUser.save();
-        await loggedInUser.save();
-        res.status(200).json({ message: 'User followed successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-router.post('/unfollow/:id', isAuthenticated, async (req, res) => {
-    const unfollowUserId = req.params.id;
-    const loggedInUserId = req.user.id;
-    try {
-        if(unfollowUserId === loggedInUserId){
-            return res.status(400).json({ message: 'You cannot unfollow yourself' });
-        }
-        const loggedInUser = await UserModel.findById(loggedInUserId);
-        const unfollowUser = await UserModel.findById(unfollowUserId);
-        if (!loggedInUser || !unfollowUser) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        if (!loggedInUser.following.includes(unfollowUserId)) {
-            return res.status(400).json({ message: 'You are not following this user' });        
-        }
-        loggedInUser.following = loggedInUser.following.filter(id => id.toString() !== unfollowUserId);
-        unfollowUser.followers = unfollowUser.followers.filter(id => id.toString() !== loggedInUserId);
-        await unfollowUser.save();
-        await loggedInUser.save();
-        res.status(200).json({ message: 'User unfollowed successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
 router.get('/currentuser', isAuthenticated, async (req, res) => {
     try {
         const currentUsername = req.user.username;
@@ -237,14 +105,9 @@ router.get('/currentuser', isAuthenticated, async (req, res) => {
 });
 router.get('/users/:id', isAuthenticated, async (req, res) => {
     const userId = req.params.id;
-    const loggedInUserId = req.user.id;
+    const LoggedInUserId = req.user.username;
     try {
-        const loggedInUser = await UserModel.findById(loggedInUserId).select('-password');
-        const isFollowing = loggedInUser.following.includes(userId);
-        if(!isFollowing){
-          return res.status(403).json({ message: 'You are not following this user' });
-        }
-        const user = await UserModel.findById(userId).select('-password');
+        const user = await UserModel.findById(userId).select('-password').populate('Logs'); // Exclude password from the response
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -254,28 +117,6 @@ router.get('/users/:id', isAuthenticated, async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
-router.get('/followers', isAuthenticated, async (req, res) => {
-    try {
-        const user = await UserModel.findById(req.user.id).populate('followers', 'username email');
-        res.status(200).json(user.followers);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-router.get('/following', isAuthenticated, async (req, res) => {
-    try {
-        const user = await UserModel.findById(req.user.id).populate('following', 'username email');
-        res.status(200).json(user.following);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-
 
 
 router.get('/logout', isAuthenticated, async(req, res) => {
@@ -288,8 +129,6 @@ router.get('/logout', isAuthenticated, async(req, res) => {
     res.clearCookie('token'); // Clear the token cookie
     res.status(200).json({ message: 'Logged out successfully' });
 });
-
-
 
 
 

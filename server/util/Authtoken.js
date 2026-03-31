@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
-dotenv.config();
+import jwt from 'jsonwebtoken';
+import 'dotenv/config';
+import { generateResetToken, verifyResetToken } from "../util/resetToken.js";
 
 const generateAuthToken = (user) => {
     const token = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_SECRET, { 
@@ -9,4 +9,5 @@ const generateAuthToken = (user) => {
     return token;
 }
 
-module.exports = generateAuthToken;
+// Use export default instead of module.exports
+export default generateAuthToken;

@@ -1,40 +1,47 @@
-const express= require('express');
+import 'dotenv/config';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import passport from 'passport';
+
+import connectDB from './db/connectivity/dbConnection.js';
+import './controller/passport.js';
+import './db/models/Logs.js';
+import userRoutes from './Routes/AuthRoutes.js';
+import logRoutes from './Routes/LogRoutes.js';
+
 const app = express();
-const dotenv = require('dotenv');
-dotenv.config();
-const port = process.env.PORT;
-const connectDB = require('./db/connectivity/dbConnection');
-const UserModel = require('./db/models/Users');
-const LogModel = require('./db/models/Logs');
-const userRoutes = require('./Routes/AuthRoutes');
-const logRoutes = require('./Routes/LogRoutes');
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-const cors = require('cors');
-app.use(cors({
-  origin: "https://logbook-mu.vercel.app", // frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true, // if sending cookies/auth headers
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+const port = process.env.PORT || 5000;
 
+(async () => {
+  try {
+    await connectDB();
+    console.log('Database connected');
+  } catch (err) {
+    console.error('Database connection failed:', err);
+    process.exit(1);
+  }
 
+  app.use(cookieParser());
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
+  app.use(
+    cors({
+      origin: [process.env.CLIENT_URL || 'http://localhost:5173'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+  );
 
-app.use('/', userRoutes);
-app.use('/', logRoutes);
+  app.options('/*', cors());
 
-app.get('/', (req, res) => {
-    res.send('API is running...');
-});
+  app.use(passport.initialize());
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  app.use('/', userRoutes);
+  app.use('/', logRoutes);
+  app.get('/', (req, res) => res.send('API is running...'));
 
-    });
-
-
-
-
+  app.listen(port, () => console.log(`Server is running on port ${port}`));
+})();

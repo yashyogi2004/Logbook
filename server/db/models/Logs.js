@@ -1,32 +1,70 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const LogSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  title: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  attachment: {
+    type: String,
+    default: ""
+  },
+  status: {
+    type: String,
+    enum: ['Pending', 'inComplete', 'Completed'],
+    default: 'Pending'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  lastLoginAt: {
+    type: Date,
+    default: Date.now
+  },
+  coins: {
+    type: Number,
+    default: 0
+  },
+  got100Badge: {
+    type: Boolean,
+    default: false
+  },
+  got1000Badge: {
+    type: Boolean,
+    default: false
+  },
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  comments: [{
     user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
     },
-    task_title: {
-        type: String,
-    },
-    task_description: {
-        type: String,
-    },
-    attachment:{
-        type: String,
-        contentType: Buffer
-    },
-    status:{
-        type: String,
-        enum: ['Pending', 'InComplete', 'Completed'],
-        default: 'Pending',
+    text: {
+      type: String,
+      required: true
     },
     createdAt: {
-        type: Date,
-        default: Date.now,
+      type: Date,
+      default: Date.now
     }
+  }]
 });
 
-//TTL index to auto-delete logs after 30 days
 LogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000 });
-const Log = mongoose.model('Log', LogSchema);
-module.exports = Log;
+
+const LogModel = mongoose.model('Log', LogSchema);
+export default LogModel;

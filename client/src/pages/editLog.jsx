@@ -1,181 +1,243 @@
-import {React,useState,useEffect} from 'react'
-import { LogOut, Users, User,ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router';
-import { useParams } from 'react-router';
+import React, { useState, useEffect } from 'react';
+import { 
+    LogOut, ArrowLeft, Save, FileText, Link as LinkIcon, 
+    Activity, AlertCircle, Loader2, Zap, Home, 
+    NotebookText, Compass, PlusSquare, User, Menu, X 
+} from 'lucide-react';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
+import Sidebar from '../components/Sidebar'; // Modular Sidebar import
 
-const EditLog = ({Logout}) => {
-    const navigate=useNavigate();
+const EditLog = ({ Logout }) => {
+    const navigate = useNavigate();
     const { id } = useParams();
-    const [formData,setFormData]=useState({
-        title:"",
-        description:"",
-        attachment:"",
-        status:""
+    const location = useLocation();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+        attachment: "",
+        status: ""
     });
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+
+    // Sidebar ke liye mock user data (Dashboard se match karne ke liye)
+    const user = { name: 'Student' };
 
     useEffect(() => {
         const fetchLog = async () => {
-            try{
-                const res = await fetch(`${import.meta.env.VITE_URL}/log/${id}`, {    
+            try {
+                const res = await fetch(`${import.meta.env.VITE_URL}/log/${id}`, {
                     method: "GET",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Accept": "application/json" },
                     credentials: "include",
-                    });
-                if (!res.ok) {
-                    throw new Error('Failed to fetch profile');
+                });
+
+                const contentType = res.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error("Server error. Check backend route.");
                 }
+
+                if (!res.ok) throw new Error('Failed to fetch log details');
+
                 const data = await res.json();
                 setFormData({
-                    title: data.task_title||"",
-                    description: data.task_description||"",
-                    attachment: data.attachment||"",
-                    status: data.status||""
+                    title: data.title || "",
+                    description: data.description || "",
+                    attachment: data.attachment || "",
+                    status: data.status || "Pending"
                 });
-            }catch(err){
-                console.log(err);
+            } catch (err) {
+                console.error(err);
+                setError("Could not load log data. Please try again.");
+            } finally {
+                setLoading(false);
             }
         }
         fetchLog();
-      }, [id]);
-   
-    const handleChange=(e)=>{
-        setFormData({...formData,[e.target.id]:e.target.value});
+    }, [id]);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.id]: e.target.value });
     }
-    const handleSubmit=async(e)=>{
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setSaving(true);
+        setError(null);
         try {
-            const res=await fetch(`${import.meta.env.VITE_URL}/log/update/${id}`,{
-                method:"post",
-                headers:{"Content-Type":"application/json"},
-                credentials:"include",
-                body:JSON.stringify(formData)
+            const res = await fetch(`${import.meta.env.VITE_URL}/log/update/${id}`, {
+                method: "POST", 
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(formData)
             });
-            if(res.ok){
+
+            if (res.ok) {
                 navigate("/dashboard");
-            }
-            else {
+            } else {
                 const errorData = await res.json();
-                setError(errorData.message || "Something went wrong. Please try again.");
+                setError(errorData.message || "Failed to update log.");
             }
         } catch (err) {
-            console.log(err);
+            setError("Network error. Please ensure backend is running.");
+        } finally {
+            setSaving(false);
         }
     }
-  
-  return (
-    <div>
-           <header className="bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-         
-          <div className="flex justify-between items-center py-4">
-             <div className='p-2 cursor-pointer flex items-center gap-2 bg-smoke-white border border-gray-200 rounded-md' onClick={()=>{navigate(-1)}}>
-            <ArrowLeft className="h-4 w-4" />
-            <span className='  text-gray-900'>Back</span>
-          </div>
-            {/* <div className="flex items-center space-x-3">
-                <Users className="h-8 w-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            </div> */}
-            <button
-              onClick={() => { Logout() }}
-              className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </header>
-       {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-7xl mx-auto mt-4" role="alert">
-                <strong className="font-bold">Error: </strong>
-                <span className="block sm:inline">{error}</span>
-                <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
-                    <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" onClick={() => setError(null)}>
-                        <title>Close</title>
-                        <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.03a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
-                    </svg>
-                </span>
-            </div>
-        )}
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-2xl font-semibold text-white mb-6">Create New Log</h2>
-        <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" onSubmit={(e)=>{ handleSubmit(e);}}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
-                Title
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="title"
-                type="text"
-                placeholder="Enter log title"
-                required
-                onChange={(e)=>{handleChange(e)}}
-                name='title'
-                value={formData.title}
+    return (
+        <div className="flex h-screen bg-[#f0f2f5] font-sans overflow-hidden">
+            
+            {/* 1. SIDEBAR Integration */}
+            <Sidebar 
+                isSidebarOpen={isSidebarOpen} 
+                setIsSidebarOpen={setIsSidebarOpen} 
+                user={user} 
+                Logout={Logout} 
+                profileLoading={false} 
             />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
-                Description
-            </label>
-            <textarea
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="description"
-                placeholder="Enter log description"
-                required
-                onChange={(e)=>{handleChange(e)}}
-                name='description'
-                rows="4"
-                value={formData.description}
-            ></textarea>
-            </div>
-            <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="attachment">
-                Attachment URL
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="attachment"
-                type="text" 
-                placeholder="Enter attachment URL (optional)"
-                onChange={(e)=>{handleChange(e)}}
-                name='attachment'
-                value={formData.attachment}
-            />
-          </div>
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="status">
-                Status
-            </label>
-            <select
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="status"
-                required
-                onChange={(e)=>{handleChange(e)}}
-                name='status'
-                value={formData.status}
-            >
-              <option value="Completed">Completed</option>
-              <option value="Pending">Pending</option>
-              <option value="inComplete">Failed</option>
-            </select>
-          </div>
-          <div className="flex items-center justify-between">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="submit"
-            >
-                Edit Log
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
+
+            {/* 2. MAIN CONTENT AREA - Responsive margin added */}
+            <main className="flex-1 md:ml-0 overflow-y-auto relative bg-[#f7f8fa] custom-scrollbar">
+                
+                {/* Mobile Top Bar */}
+                <header className="md:hidden bg-white/80 backdrop-blur-md p-4 sticky top-0 z-40 border-b flex justify-between items-center shadow-sm">
+                    <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-gray-50 rounded-xl">
+                        <Menu className="w-6 h-6 text-gray-600" />
+                    </button>
+                </header>
+
+                <div className="p-6 md:p-12 max-w-5xl mx-auto space-y-8">
+                    
+                    {/* Navigation Header */}
+                    <div className="flex items-center justify-end">
+                        <StatusIndicator status={formData.status} />
+                    </div>
+
+                    {/* HERO CARD - Original Premium Design  */}
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-bottom-4">
+                        <div className="bg-gradient-to-r from-[#1e3a8a] to-[#00B8D9] p-10 md:p-14 text-white relative">
+                            <div className="relative z-10">
+                                <h2 className="text-4xl md:text-5xl font-black mb-3 tracking-tight">Modify Log</h2>
+                                <p className="text-blue-100 font-medium text-lg max-w-md opacity-90 italic">
+                                    Updating achievement details for community visibility.
+                                </p>
+                            </div>
+                            <FileText className="absolute top-0 right-0 p-4 w-56 h-56 opacity-10 transform translate-x-10 -translate-y-10" />
+                        </div>
+
+                        {error && (
+                            <div className="mx-8 mt-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3">
+                                <AlertCircle className="w-5 h-5" />
+                                <p className="font-bold text-sm">{error}</p>
+                            </div>
+                        )}
+
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-24 gap-4">
+                                <Loader2 className="w-12 h-12 text-[#00B8D9] animate-spin" />
+                                <p className="font-black text-gray-400 text-[10px] uppercase tracking-widest">Retrieving Log from Cloud...</p>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-10">
+                                
+                                {/* Title & Status Row */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                    <div className="md:col-span-2 space-y-2">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Achievement Title</label>
+                                        <input 
+                                            className="w-full py-4 px-6 bg-gray-50 border-2 border-transparent focus:border-[#00B8D9] focus:bg-white rounded-2xl outline-none transition-all text-gray-800 font-bold shadow-sm"
+                                            id="title"
+                                            type="text"
+                                            required
+                                            onChange={handleChange}
+                                            value={formData.title}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Status</label>
+                                        <div className="relative">
+                                            <select 
+                                                className="w-full py-4 px-6 bg-gray-50 border-2 border-transparent focus:border-[#00B8D9] focus:bg-white rounded-2xl outline-none transition-all text-gray-800 font-bold cursor-pointer appearance-none shadow-sm"
+                                                id="status"
+                                                value={formData.status}
+                                                onChange={handleChange}
+                                            >
+                                                <option value="Completed">Completed</option>
+                                                <option value="Pending">Pending</option>
+                                                <option value="inComplete">Incomplete</option>
+                                            </select>
+                                            <Activity className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Description Section */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Task Breakdown / Description</label>
+                                    <textarea 
+                                        className="w-full py-4 px-6 bg-gray-50 border-2 border-transparent focus:border-[#00B8D9] focus:bg-white rounded-[2rem] outline-none transition-all text-gray-700 font-medium min-h-[180px] shadow-sm resize-none"
+                                        id="description"
+                                        required
+                                        onChange={handleChange}
+                                        value={formData.description}
+                                    />
+                                </div>
+
+                                {/* Attachment Link */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Evidence URL (Optional)</label>
+                                    <div className="relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#00B8D9]">
+                                            <LinkIcon className="w-5 h-5" />
+                                        </div>
+                                        <input 
+                                            className="w-full py-4 pl-14 pr-6 bg-gray-50 border-2 border-transparent focus:border-[#00B8D9] focus:bg-white rounded-2xl outline-none transition-all text-gray-600 font-bold shadow-sm"
+                                            id="attachment"
+                                            type="text"
+                                            placeholder="https://github.com/..."
+                                            onChange={handleChange}
+                                            value={formData.attachment}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Action Button */}
+                                <div className="flex justify-end gap-4 pt-6 border-t border-gray-100">
+                                    <button 
+                                        type="submit" 
+                                        disabled={saving}
+                                        className="w-full md:w-auto flex items-center justify-center gap-3 bg-[#00B8D9] text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-[#00B8D9]/40 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                                    >
+                                        {saving ? "Processing..." : <><Save className="w-5 h-5" /> Update Log</>}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            </main>
+            {/* Overlay for mobile sidebar */}
+            {isSidebarOpen && <div className="fixed inset-0 bg-[#0f172a]/60 backdrop-blur-sm z-40 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>}
+        </div>
+    );
 }
+
+const StatusIndicator = ({ status }) => {
+    const colors = {
+        Completed: 'bg-green-500',
+        Pending: 'bg-yellow-500',
+        inComplete: 'bg-red-500'
+    };
+    return (
+        <div className="hidden sm:flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
+            <div className={`w-2 h-2 rounded-full ${colors[status] || 'bg-gray-300'}`}></div>
+            <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Entry Status: {status}</span>
+        </div>
+    );
+};
 
 export default EditLog;

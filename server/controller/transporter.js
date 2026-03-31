@@ -1,16 +1,18 @@
-const nodemailer = require("nodemailer");
-const dotenv = require('dotenv');
-dotenv.config();
+import nodemailer from "nodemailer";
+import "dotenv/config";
 
-// Create a test account or replace with real credentials.
 const transporter = nodemailer.createTransport({
-  host: process.env.host,
-  port: 587,
-  secure: false, // true for 465, false for other ports
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: true, // 587 -> false, 465 -> true
   auth: {
-    user: process.env.user,
-    pass: process.env.pass,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  tls: {
+    // helps in environments with SSL inspection
+    rejectUnauthorized: false,
   },
 });
 
-module.exports = transporter;
+export default transporter;
